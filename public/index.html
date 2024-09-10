@@ -42,7 +42,7 @@
     <button onclick="getForecast()">Get Forecast</button>
 
     <h1 id="title">Weather</h1>
-    <p>Current Temperature</p>
+    
     <button id="add_favorite" class="button" onclick="addFavorite()" disabled>Add Favorite</button>
     <label>Go to Favorites</label>
     <select id="favorites" onchange="restoreFavorite()" disabled>
@@ -51,6 +51,7 @@
         </option>
     </select>
     <button id="delete_favorite" onclick="removeFavorite()" disabled>Delete Favorite</button>
+    <p>Current Temperature</p>
     <p id="current_temperature"></p>
     <button id="switch_botton" class="button" onclick="changeDisplay()" disabled>Switch to Celsius</button>
 
@@ -149,9 +150,11 @@
                     addFavoriteBotton.disabled = true;
                 }).then(()=>{
                     const select = document.getElementById("favorites");
+                    
                     select.options[0].text = "";
                     select.disabled = false;
                     select.value = zipCode;
+
                 }).catch(error=>{
                     alert(error);
                 });
@@ -286,7 +289,7 @@
                         const select = document.getElementById("favorites");
                         select.value = zipCode;
                         addFavoriteBotton.disabled =true;
-                        deleteFavoriteBotton.disabled = true;
+                        deleteFavoriteBotton.disabled = false;
                         return;
                     }
                 }
