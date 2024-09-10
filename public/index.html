@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Forecast</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 36px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .button {
+            margin-top: 10px;
+        }
+        #current_temperature{
+            font-size: 36px;
+        }
+        #favorites{
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+
+    <h3>Enter a zip code</h3>
+    <input id="zipCode" type="text" placeholder="Enter a zip code">
+    <button onclick="getForecast()">Get Forecast</button>
+
+    <h1 id="title">Weather</h1>
+    <p>Current Temperature</p>
+    <button id="add_favorite" class="button" onclick="addFavorite()" disabled>Add Favorite</button>
+    <label>Go to Favorites</label>
+    <select id="favorites" onchange="restoreFavorite()" disabled>
+        <option value="default">
+            
+        </option>
+    </select>
+    <button id="delete_favorite" onclick="removeFavorite()" disabled>Delete Favorite</button>
+    <p id="current_temperature"></p>
+    <button id="switch_botton" class="button" onclick="changeDisplay()" disabled>Switch to Celsius</button>
+
+    <h3>3 day Forecast</h3>
+    <table>
+        <tr>
+            <th>Day</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Conditions</th>
+        </tr>
+        <tr>
+            <td id="day1_day">-</td>
+            <td id="day1_high">-</td>
+            <td id="day1_low">-</td>
+            <td id="day1_conditions">-</td>
+        </tr>
+        <tr>
+            <td id="day2_day">-</td>
+            <td id="day2_high">-</td>
+            <td id="day2_low">-</td>
+            <td id="day2_conditions">-</td>
+        </tr>
+        <tr>
+            <td id="day3_day">-</td>
+            <td id="day3_high">-</td>
+            <td id="day3_low">-</td>
+            <td id="day3_conditions">-</td>
+        </tr>
+    </table>
+
+
+    <script>
+        let forecast;
+        let currentTempF;
+        let currentTempC;
+        let isF = true;
+        let locationName;
+        let region;
+        let zipCode;
+        let port = 4000;
+        let favoritesAll;
+
+        function restoreFavorite(){
+            let chooseCode =  document.getElementById("favorites").value;
+            const addFavoriteBotton = document.getElementById('add_favorite');
+            const deleteFavoriteBotton = document.getElementById('delete_favorite');
+            addFavoriteBotton.disabled = true;
+            if(chooseCode === "default"){
+                deleteFavoriteBotton.disabled = true;
+                return;
+            }
+            deleteFavoriteBotton.disabled = false;
+            document.getElementById('zipCode').value = chooseCode;
+        }
+
+        function updateSelectList(favorites){
+            
+            const select = document.getElementById("favorites");
+            select.length = 1;
+            favorites.forEach(favorite => {
+                let newOption = document.createElement("option");
+                newOption.value  = favorite.zipCode;
+                newOption.text = favorite.name;
+                select.append(newOption);
+            });
+        }
+
+        function existInList(favorite,favorites){
+            for(let i = 0;i<favorites.length;i++){
+                    let favoriteItem = favorites[i];
+                    if(favoriteItem.zipCode === favorite.zipCode){
+                        return true;
+                    }
+                }
+            return false;
+        }
+
+        function addFavorite(){
+
+            fetch(`http://localhost:${port}/api/favorite`,{
+                method: 'POST', // 指定请求方法为 POST
+                headers: {
+                    'Content-Type': 'application/json', // 设置请求头
+                },
+                body: JSON.stringify({
+                    zipCode: zipCode,
+                    name: `${locationName}, ${region}`,
+                })
+                }).then((data)=>{
+                    return data.json();
+                }).then((favoritesList)=>{
+                    favoritesAll = favoritesList;
+                    updateSelectList(favoritesList);
+                    const addFavoriteBotton = document.getElementById('add_favorite');
+                    addFavoriteBotton.disabled = true;
+                }).then(()=>{
+                    const select = document.getElementById("favorites");
+                    select.options[0].text = "";
+                    select.disabled = false;
+                    select.value = zipCode;
+                }).catch(error=>{
+                    alert(error);
+                });
+
+                
+        }
+
+
+        function getFavorites(){
+            fetch(`http://localhost:${port}/api/favorite`
+                ).then((data)=>{
+                    return data.json();
+                }).then((favoritesList)=>{
+                    favoritesAll = favoritesList;
+                    let select =  document.getElementById("favorites");
+                    let options = select.options;
+                    if(favoritesAll.length === 0){ 
+                        options[0].text = "No Favorites";
+                        select.disabled = true;
+                    }else{
+                        options[0].text = "";
+                        select.disabled = false;
+                    }
+                    updateSelectList(favoritesList);
+                }).catch(error=>{
+                    alert(error);
+                });
+        }
+
+        window.onload = getFavorites;
+
+        function removeFavorite(){
+            const select = document.getElementById("favorites");
+            const deleteCode = select.value;
+            fetch(`http://localhost:${port}/api/favorite/${deleteCode}`,{
+                method: 'DELETE'
+                }).then((data)=>{
+                    return data.json();
+                }).then((favoritesList)=>{
+                    favoritesAll = favoritesList;
+                    updateSelectList(favoritesList);
+                }).catch(error=>{
+                    alert(error);
+                });
+            location.reload(true);
+        }
+
+        function isValidZipCode(zipCode) {
+            const zipCodePattern = /^\d{5}$/;
+            return zipCodePattern.test(zipCode);
+        }
+
+        function changeDisplay(){
+
+            isF = !isF;
+            const temp = document.getElementById("current_temperature");
+            const switchBotton = document.getElementById("switch_botton");
+            if(isF === false){
+                temp.textContent = `${currentTempC}°C`;
+                switchBotton.textContent = "Switch to Fahrenheit";
+            }else{
+                temp.textContent = `${currentTempF}°F`;
+                switchBotton.textContent = "Switch to Celsius";
+            }
+
+            updateList(isF);
+
+        }
+
+        function updateList(isF){
+            for(let i = 1;i<4;i++){
+                    const date = forecast[i].date;
+                    const maxTemp = isF ? forecast[i].day.maxtemp_f:forecast[i].day.maxtemp_c;
+                    const minTemp = isF ? forecast[i].day.mintemp_f:forecast[i].day.mintemp_c;
+                    const condition = forecast[i].day.condition.text;
+
+                    document.getElementById(`day${i}_day`).textContent = date;
+                    if(isF){
+                        document.getElementById(`day${i}_high`).textContent = `${maxTemp}°F`;
+                        document.getElementById(`day${i}_low`).textContent = `${minTemp}°F`;
+                    }else{
+                        document.getElementById(`day${i}_high`).textContent = `${maxTemp}°C`;
+                        document.getElementById(`day${i}_low`).textContent = `${minTemp}°C`;
+                    }
+                    document.getElementById(`day${i}_conditions`).textContent = condition;
+            }
+        }
+
+        function getForecast(){
+            zipCode = document.getElementById('zipCode').value;
+            if(isValidZipCode(zipCode) === false){
+                alert("Invalid zip code!");
+                return;
+            }
+            const url = `http://api.weatherapi.com/v1/forecast.json?key=9da92afeb8e445cc8a6174945240309&q=${zipCode}&days=4&aqi=no&alerts=no`;
+            fetch(url)
+            .then((data) => {
+                return data.json(); // convert raw data to json
+            }).then((jsonData) => {
+                locationName = jsonData.location.name; 
+                region = jsonData.location.region; 
+
+                // 提取当前温度和天气条件
+                currentTempF = jsonData.current.temp_f;
+                currentTempC = jsonData.current.temp_c; 
+
+                let title = document.getElementById("title");
+                console.log(title)
+                title.textContent = `Weather for ${locationName}, ${region}`;
+                const temp = document.getElementById("current_temperature");
+                if(isF === true){
+                    temp.textContent = `${currentTempF}°F`;
+                }else{
+                    temp.textContent = `${currentTempC}°C`;
+                }
+
+                // 提取未来几天的天气预报
+                forecast = jsonData.forecast.forecastday;
+                
+                updateList(isF)
+            }).then(()=>{
+                const switchBotton = document.getElementById('switch_botton');
+                const addFavoriteBotton = document.getElementById('add_favorite');
+                const deleteFavoriteBotton = document.getElementById('delete_favorite');
+                const select = document.getElementById("favorites");
+                select.value = "default";
+                switchBotton.disabled = false;
+                //看获得预报的是否已经出现在list中
+                for(let i = 0;i<favoritesAll.length;i++){
+                    let favorite = favoritesAll[i];
+                    if(favorite.zipCode === zipCode){
+                        const select = document.getElementById("favorites");
+                        select.value = zipCode;
+                        addFavoriteBotton.disabled =true;
+                        deleteFavoriteBotton.disabled = true;
+                        return;
+                    }
+                }
+                
+                //Do not find the value in the select
+                addFavoriteBotton.disabled = false;
+                deleteFavoriteBotton.disabled = true;
+            }).catch(error => {
+                console.log(error);
+                alert("Invalid zip code!"); // 处理错误消息
+            });
+        }
+
+    </script>
+
+</body>
+
+
+</html>
