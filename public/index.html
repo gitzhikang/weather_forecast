@@ -102,10 +102,12 @@
             addFavoriteBotton.disabled = true;
             if(chooseCode === "default"){
                 deleteFavoriteBotton.disabled = true;
+                location.reload(true);
                 return;
             }
             deleteFavoriteBotton.disabled = false;
             document.getElementById('zipCode').value = chooseCode;
+            getForecast();
         }
 
         function updateSelectList(favorites){
@@ -150,11 +152,11 @@
                     addFavoriteBotton.disabled = true;
                 }).then(()=>{
                     const select = document.getElementById("favorites");
-                    
+                    const deleteFavoriteBotton = document.getElementById('delete_favorite');
                     select.options[0].text = "";
                     select.disabled = false;
                     select.value = zipCode;
-
+                    deleteFavoriteBotton.disabled =false;
                 }).catch(error=>{
                     alert(error);
                 });
@@ -196,10 +198,12 @@
                 }).then((favoritesList)=>{
                     favoritesAll = favoritesList;
                     updateSelectList(favoritesList);
+                    location.reload(true);
                 }).catch(error=>{
+                    console.log(error);
                     alert(error);
                 });
-            location.reload(true);
+            
         }
 
         function isValidZipCode(zipCode) {
@@ -293,7 +297,6 @@
                         return;
                     }
                 }
-                
                 //Do not find the value in the select
                 addFavoriteBotton.disabled = false;
                 deleteFavoriteBotton.disabled = true;
