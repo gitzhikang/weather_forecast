@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const favorites_1 = __importDefault(require("./routes/favorites"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const app = (0, express_1.default)();
-const port = 4000;
+const port = 3000;
 // this will serve all files in the public directory as static
 // files, such as HTML, CSS, images, etc.
 app.use(express_1.default.static("public"));

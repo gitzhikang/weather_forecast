@@ -2,7 +2,7 @@ import express from "express";
 import favoriteRouter from './routes/favorites'
 import bodyParser from "body-parser";
 const app = express();
-const port = 4000;
+const port = 3000;
 // this will serve all files in the public directory as static
 // files, such as HTML, CSS, images, etc.
 app.use(express.static("public"));
