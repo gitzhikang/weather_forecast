@@ -135,9 +135,9 @@
         function addFavorite(){
 
             fetch(`http://localhost:${port}/api/favorite`,{
-                method: 'POST', // 指定请求方法为 POST
+                method: 'POST', // Set Request Method POST
                 headers: {
-                    'Content-Type': 'application/json', // 设置请求头
+                    'Content-Type': 'application/json', // Set Requst Header
                 },
                 body: JSON.stringify({
                     zipCode: zipCode,
@@ -229,21 +229,21 @@
         }
 
         function updateList(isF){
-            for(let i = 1;i<4;i++){
+            for(let i = 0;i<3;i++){
                     const date = forecast[i].date;
                     const maxTemp = isF ? forecast[i].day.maxtemp_f:forecast[i].day.maxtemp_c;
                     const minTemp = isF ? forecast[i].day.mintemp_f:forecast[i].day.mintemp_c;
                     const condition = forecast[i].day.condition.text;
 
-                    document.getElementById(`day${i}_day`).textContent = date;
+                    document.getElementById(`day${i+1}_day`).textContent = date;
                     if(isF){
-                        document.getElementById(`day${i}_high`).textContent = `${maxTemp}°F`;
-                        document.getElementById(`day${i}_low`).textContent = `${minTemp}°F`;
+                        document.getElementById(`day${i+1}_high`).textContent = `${maxTemp}°F`;
+                        document.getElementById(`day${i+1}_low`).textContent = `${minTemp}°F`;
                     }else{
-                        document.getElementById(`day${i}_high`).textContent = `${maxTemp}°C`;
-                        document.getElementById(`day${i}_low`).textContent = `${minTemp}°C`;
+                        document.getElementById(`day${i+1}_high`).textContent = `${maxTemp}°C`;
+                        document.getElementById(`day${i+1}_low`).textContent = `${minTemp}°C`;
                     }
-                    document.getElementById(`day${i}_conditions`).textContent = condition;
+                    document.getElementById(`day${i+1}_conditions`).textContent = condition;
             }
         }
 
@@ -261,7 +261,7 @@
                 locationName = jsonData.location.name; 
                 region = jsonData.location.region; 
 
-                // 提取当前温度和天气条件
+                // Extract current temp
                 currentTempF = jsonData.current.temp_f;
                 currentTempC = jsonData.current.temp_c; 
 
@@ -275,7 +275,7 @@
                     temp.textContent = `${currentTempC}°C`;
                 }
 
-                // 提取未来几天的天气预报
+                // extract feature weather
                 forecast = jsonData.forecast.forecastday;
                 
                 updateList(isF)
@@ -286,7 +286,7 @@
                 const select = document.getElementById("favorites");
                 select.value = "default";
                 switchBotton.disabled = false;
-                //看获得预报的是否已经出现在list中
+                //Find if forecast exist in the list
                 for(let i = 0;i<favoritesAll.length;i++){
                     let favorite = favoritesAll[i];
                     if(favorite.zipCode === zipCode){
@@ -302,7 +302,7 @@
                 deleteFavoriteBotton.disabled = true;
             }).catch(error => {
                 console.log(error);
-                alert("Invalid zip code!"); // 处理错误消息
+                alert("Invalid zip code!"); // handle error message
             });
         }
 
